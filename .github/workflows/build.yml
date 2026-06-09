@@ -31,6 +31,20 @@ jobs:
       - name: Build site and update Colonius.tex
         run: python build.py
 
+      - name: Check for duplicate BibTeX keys
+        run: |
+          python3 -c "
+          import re
+          with open('colonius.bib') as f:
+              content = f.read()
+          keys = re.findall(r'@\w+\{(\S+),', content)
+          dupes = [k for k in set(keys) if keys.count(k) > 1]
+          if dupes:
+              print('ERROR: Duplicate keys found:', dupes)
+              exit(1)
+          print('No duplicate keys found.')
+          "
+
       - name: Compile CV (LaTeX)
         uses: xu-cheng/latex-action@v3
         with:
