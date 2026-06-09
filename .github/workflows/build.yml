@@ -50,7 +50,6 @@ jobs:
         with:
           root_file: Colonius.tex
           latexmk_use_xelatex: false
-          extra_system_packages: "biber"
           args: "-pdf -interaction=nonstopmode -file-line-error"
 
       - name: Copy CV to docs
