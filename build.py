@@ -97,7 +97,9 @@ def field(row: dict, key: str) -> str:
 
 
 def parse_authors(raw: str) -> list[str]:
-    return [a.strip() for a in raw.split("/") if a.strip()]
+    # Strip stray LaTeX braces that may be left over in the spreadsheet data
+    cleaned = raw.replace("{", "").replace("}", "")
+    return [a.strip() for a in cleaned.split("/") if a.strip()]
 
 
 def authors_to_bibtex(authors: list[str]) -> str:
@@ -255,7 +257,7 @@ def make_bibtex_entry(row: dict) -> str:
     fields_out: list[tuple[str, str]] = [
         ("year",   year_val),
         ("author", to_latex_chars(authors_to_bibtex(authors))),
-        ("title",  "{" + protect_caps(to_latex_chars(field(row, "Title"))) + "}"),
+        ("title",  "{" + protect_caps(to_latex_chars(field(row, "Title").replace("{", "").replace("}", ""))) + "}"),
     ]
 
     for bib_key, col_name in BIBTEX_FIELDS.get(etype, []):
