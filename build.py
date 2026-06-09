@@ -118,6 +118,12 @@ def format_author_display(authors: list[str]) -> str:
 # and titles.  Expand as needed.
 
 DIACRITICALS: list[tuple[str, str]] = [
+    # Non-breaking space and Unicode punctuation — must come before letters
+    ("\xa0", " "),           # non-breaking space → regular space
+    ("–", "--"),        # en dash
+    ("—", "---"),       # em dash
+    ("‐", "-"),         # Unicode hyphen
+    ("‒", "-"),         # figure dash
     # Double-width / composed characters first to avoid partial matches
     ("ä", r'{\"a}'), ("ë", r'{\"e}'), ("ï", r'{\"i}'),
     ("ö", r'{\"o}'), ("ü", r'{\"u}'), ("ÿ", r'{\"y}'),
@@ -127,6 +133,7 @@ DIACRITICALS: list[tuple[str, str]] = [
     ("ó", r"{\'o}"), ("ú", r"{\'u}"), ("ý", r"{\'y}"),
     ("Á", r"{\'A}"), ("É", r"{\'E}"), ("Í", r"{\'I}"),
     ("Ó", r"{\'O}"), ("Ú", r"{\'U}"), ("Ý", r"{\'Y}"),
+    ("ń", r"{\'n}"), ("Ń", r"{\'N}"),
     ("à", r"{\`a}"), ("è", r"{\`e}"), ("ì", r"{\`i}"),
     ("ò", r"{\`o}"), ("ù", r"{\`u}"),
     ("À", r"{\`A}"), ("È", r"{\`E}"), ("Ì", r"{\`I}"),
@@ -261,7 +268,7 @@ def make_bibtex_entry(row: dict) -> str:
     ]
 
     for bib_key, col_name in BIBTEX_FIELDS.get(etype, []):
-        val = field(row, col_name)
+        val = to_latex_chars(field(row, col_name))
         if val:
             if bib_key in ("journal", "booktitle", "howpublished", "school",
                            "publisher", "editor"):
