@@ -1,3 +1,15 @@
 __pycache__/
 *.pyc
 .DS_Store
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.run.xml
+*-blx.bib
+Colonius.pdf

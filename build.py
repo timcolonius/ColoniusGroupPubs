@@ -121,6 +121,8 @@ DIACRITICALS: list[tuple[str, str]] = [
     # Non-breaking space and Unicode punctuation — must come before letters
     ("\xa0", " "),           # non-breaking space → regular space
     ("%",  r"\%"),       # BibTeX comment char — must escape in all field values
+    ('"',  "''"),        # ASCII double-quote — invalid as BibTeX delimiter inside {}; use '' instead
+    ("&",  r"\&"),       # LaTeX special char — would be misplaced alignment tab in bibliography
     ("–", "--"),        # en dash
     ("—", "---"),       # em dash
     ("‐", "-"),         # Unicode hyphen
@@ -265,7 +267,7 @@ def make_bibtex_entry(row: dict) -> str:
     fields_out: list[tuple[str, str]] = [
         ("year",   year_val),
         ("author", to_latex_chars(authors_to_bibtex(authors))),
-        ("title",  "{" + protect_caps(to_latex_chars(field(row, "Title").replace("{", "").replace("}", ""))) + "}"),
+        ("title",  "{" + protect_caps(to_latex_chars(field(row, "Title").replace("{", "").replace("}", "").replace("@", ""))) + "}"),
     ]
 
     for bib_key, col_name in BIBTEX_FIELDS.get(etype, []):
@@ -560,6 +562,11 @@ def main():
             if _re.search(r'(?<!\\)%', line):
                 raise ValueError(
                     f"Unescaped '%' in entry '{key}' line {i}: {line!r}"
+                )
+            # bare & causes "Misplaced alignment tab character" in LaTeX
+            if _re.search(r'(?<!\\)&', line):
+                raise ValueError(
+                    f"Unescaped '&' in entry '{key}' line {i}: {line!r}"
                 )
 
     for bib_path in (BIB_ROOT, BIB_DOCS):
