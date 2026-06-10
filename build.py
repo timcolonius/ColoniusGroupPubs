@@ -120,6 +120,7 @@ def format_author_display(authors: list[str]) -> str:
 DIACRITICALS: list[tuple[str, str]] = [
     # Non-breaking space and Unicode punctuation — must come before letters
     ("\xa0", " "),           # non-breaking space → regular space
+    ("%",  r"\%"),       # BibTeX comment char — must escape in all field values
     ("–", "--"),        # en dash
     ("—", "---"),       # em dash
     ("‐", "-"),         # Unicode hyphen
