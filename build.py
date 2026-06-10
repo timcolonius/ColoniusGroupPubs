@@ -276,9 +276,28 @@ def make_bibtex_entry(row: dict) -> str:
                 val = "{" + val + "}"
             fields_out.append((bib_key, val))
 
+    def wrap_field(k: str, v: str) -> str:
+        """Wrap long field values so no line exceeds ~250 chars.
+        libbtparse (biber's C BibTeX parser) has a fixed input buffer;
+        lines over ~300 chars cause a SEGV."""
+        line = f"  {k} = {{{v}}},"
+        if len(line) <= 250:
+            return line
+        # For author fields, break naturally at each ' and '
+        if k == "author":
+            parts = v.split(" and ")
+            indent = "               "  # aligns continuation under opening {
+            wrapped = (f" and\n{indent}").join(parts)
+            return f"  {k} = {{{wrapped}}},"
+        # For other long fields, just break at word boundaries
+        import textwrap as _tw
+        indent = " " * (len(k) + 7)  # align under the opening {
+        wrapped = _tw.fill(v, width=250, subsequent_indent=indent)
+        return f"  {k} = {{{wrapped}}},"
+
     lines = [f"@{etype}{{{tag},"]
     for k, v in fields_out:
-        lines.append(f"  {k} = {{{v}}},")
+        lines.append(wrap_field(k, v))
     lines[-1] = lines[-1].rstrip(",")
     lines.append("}")
     return "\n".join(lines)
