@@ -522,6 +522,27 @@ def main():
     # ── BibTeX ────────────────────────────────────────────────────────────────
     bib_entries = [e for r in rows if (e := make_bibtex_entry(r))]
     bib_content = "\n\n".join(bib_entries) + "\n"
+
+    # ── Validate: biber's C parser (libbtparse) crashes on non-ASCII and on
+    #    bare % (BibTeX comment char).  Fail loudly here rather than silently
+    #    producing a bad file.
+    import re as _re
+    for entry in bib_entries:
+        key_m = _re.match(r'@\w+\{(\S+),', entry)
+        key = key_m.group(1) if key_m else '?'
+        for i, line in enumerate(entry.splitlines(), 1):
+            for ch in line:
+                if ord(ch) > 127:
+                    raise ValueError(
+                        f"Non-ASCII char {repr(ch)} (ord={ord(ch)}) in entry "
+                        f"'{key}' line {i}: {line!r}"
+                    )
+            # bare % not preceded by backslash is a BibTeX comment
+            if _re.search(r'(?<!\\)%', line):
+                raise ValueError(
+                    f"Unescaped '%' in entry '{key}' line {i}: {line!r}"
+                )
+
     for bib_path in (BIB_ROOT, BIB_DOCS):
         with open(bib_path, "w", encoding="utf-8") as f:
             f.write(bib_content)
